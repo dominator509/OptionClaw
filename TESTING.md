@@ -50,6 +50,7 @@ Smoke tests must verify:
 - Example config validates.
 - Health command reports local readiness after EP-008.
 - No secrets are printed.
+- Health output includes config, data, secrets store, provider, audit, and kill-switch readiness.
 
 ## Regression Test Rules
 

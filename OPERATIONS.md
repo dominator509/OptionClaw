@@ -23,6 +23,7 @@
 - Enable live mode only after production readiness and explicit approval.
 - Keep rollback artifact available.
 - Monitor health, logs, risk rejections, provider errors, and kill-switch state.
+- Monitor `config_ready`, `data_ready`, `audit_ready`, `secrets_store_ready`, `providers_ready`, and `kill_switch_active` in health output.
 - Treat live order records as production data.
 
 ## Health Checks
@@ -42,6 +43,8 @@ Health must report:
 - Provider mode readiness.
 - Audit log write readiness.
 
+In paper mode, `secrets_store_ready` and `providers_ready` should be `true`. In unsupported live mode, those readiness signals should remain false until a later ExecPlan adds the missing production integrations.
+
 ## Common Failure Modes
 
 | Failure | Symptom | Immediate Action | Recovery |
@@ -53,15 +56,18 @@ Health must report:
 | Provider outage | Adapter errors increase | Stay in paper/sandbox or pause | Retry within bounded policy; do not spam provider. |
 | Risk rejection spike | Many intents rejected | Review strategy/config | Do not lower risk gates without a decision record. |
 | Audit write failure | Execution refused | Stop trading commands | Fix disk/path permissions or restore storage. |
+| Secret store unavailable | Health shows `secrets_store_ready=false` | Stay in paper mode or stop live work | Add the approved encrypted secret store before retrying. |
+| Provider readiness false | Health shows `providers_ready=false` | Stay in paper mode or pause live work | Use mock/fixture paths until provider setup is complete. |
 
 ## Troubleshooting
 
 1. Run `optionclaw health --config <path>` after EP-008.
 2. Inspect recent structured logs.
 3. Verify data directory permissions.
-4. Verify config values from `ENVIRONMENT.md`.
-5. Run the narrowest failing validation command.
-6. Apply the anti-fixation rule from `AGENTS.md`.
+4. Verify `secrets_store_ready`, `providers_ready`, and `kill_switch_active`.
+5. Verify config values from `ENVIRONMENT.md`.
+6. Run the narrowest failing validation command.
+7. Apply the anti-fixation rule from `AGENTS.md`.
 
 ## Database Backup / Restore
 

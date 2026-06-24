@@ -155,20 +155,30 @@ Logging initialization must be safe if called once per process. Tests must not d
 
 ## 12. Progress
 
-- [ ] M1 - Structured logging and redaction.
-- [ ] M2 - Metrics-like operational signals.
-- [ ] M3 - Health command and smoke coverage.
-- [ ] M4 - Runbooks, alerts, and dashboards/log queries.
-- [ ] M5 - Observability final validation.
+- [x] M1 - Structured logging and redaction. Completed 2026-06-23. Validation: `cargo test --lib --bins --all-features --offline` -> passed.
+- [x] M2 - Metrics-like operational signals. Completed 2026-06-23. Validation: `cargo test --test integration_services --all-features --offline`, `cargo test --test integration_security --all-features --offline`, `cargo test --test integration_persistence --all-features --offline`, `cargo test --test contract_adapters --all-features --offline`, `cargo test --test integration_observability --all-features --offline` -> passed.
+- [x] M3 - Health command and smoke coverage. Completed 2026-06-23. Validation: `cargo test --test integration_smoke --all-features --offline`, `cargo test --test e2e_cli --all-features --offline` -> passed.
+- [x] M4 - Runbooks, alerts, and dashboards/log queries. Completed 2026-06-23. Validation: `git diff --name-only` -> passed.
+- [x] M5 - Observability final validation. Completed 2026-06-23. Validation: `cargo fmt --all -- --check`, `cargo clippy --all-targets --all-features --offline -- -D warnings`, `cargo check --all-targets --all-features --offline`, `cargo test --test integration_services --all-features --offline`, `cargo test --test integration_security --all-features --offline`, `cargo test --test integration_persistence --all-features --offline`, `cargo test --test contract_adapters --all-features --offline`, `cargo test --test integration_observability --all-features --offline`, `cargo test --test integration_smoke --all-features --offline`, `cargo test --test e2e_cli --all-features --offline`, `cargo build --release --offline` -> passed. Direct `./scripts/verify.sh` invocation failed under `cmd.exe` with `'.' is not recognized as an internal or external command, operable program or batch file.'`.
 
 ## 13. Surprises & Discoveries
 
 Record observability gaps and validation failures here.
 
+- The repository already had a health command and redaction primitives, so EP-008 was a hardening pass rather than a greenfield observability build.
+- The initial formatter pass exposed only line-wrap issues and one unused redaction-helper parameter warning, both of which were resolved without changing behavior.
+- A local structured-event sink and in-memory metric registry were sufficient for the required tests, so no external logging or metrics dependency was needed.
+- The documented `./scripts/verify.sh` wrapper is still not directly executable under this Windows `cmd.exe` session, so the native Cargo fallback sequence remains the practical verification path here.
+
 ## 14. Decision Log
 
 Record logging/metrics/health design decisions here.
 
+- Chose to implement structured logs as serializable local events backed by an in-memory sink for tests and offline inspection.
+- Chose to keep command success/failure counts in the CLI layer and service-specific readiness/decision metrics in the service layer to avoid double-counting.
+- Chose to expose `secrets_store_ready` and `providers_ready` separately so health can distinguish paper-mode readiness from unsupported live-mode readiness.
+- Chose to keep `optionclaw health` readable in the terminal by extending the existing summary line rather than introducing a new formatting dependency.
+
 ## 15. Outcomes & Retrospective
 
-Complete after M5.
+EP-008 is complete. The repo now has structured local observability events, health readiness reporting for config/data/audit/secrets/providers/kill-switch state, operational metrics hooks for command and service outcomes, observability tests, smoke coverage, and updated runbooks. The only remaining environment-specific limitation is that `./scripts/verify.sh` cannot be launched directly from `cmd.exe` on this host; the documented native Cargo fallback sequence passed in full.

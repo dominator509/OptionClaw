@@ -2,7 +2,7 @@
 
 ## Logging Strategy
 
-Use structured logs for all runtime operations. Logs must be machine-readable where practical and human-readable in CLI summaries. Default log level is `info`.
+Use structured logs for all runtime operations. Logs must be machine-readable where practical and human-readable in CLI summaries. Default log level is `info`. OptionClaw keeps a local structured-event sink for tests and offline inspection, and `init_logging(level)` is safe to call once per process.
 
 ## Structured Log Fields
 
@@ -22,6 +22,8 @@ Required fields as applicable:
 - `error_code`
 - `retryable`
 - `correlation_id`
+
+Structured events emitted by the current implementation also include `fields` entries for path, readiness, and decision details. Sensitive values must be written with a redacted placeholder instead of the raw value.
 
 Never include raw secrets.
 
@@ -54,6 +56,17 @@ Initial metrics may be emitted as structured log counters or local text output u
 - Kill switch active state.
 - LLM response parse failures.
 
+Current local metric keys include:
+
+- `command_success{command=...}`
+- `command_failure{command=...,error_code=...}`
+- `config_validation{mode=...,result=...}`
+- `risk_decision{result=accepted|rejected}`
+- `paper_execution{result=executed|rejected}`
+- `adapter_result{provider=...,operation=...,result=success|failure}`
+- `audit_append{result=success|failure}`
+- `health_status{... readiness labels ...}`
+
 ## Traces
 
 Distributed tracing is not required for initial local CLI. Local span-like structured fields are required around:
@@ -75,6 +88,8 @@ optionclaw health --config <path>
 
 Health output must include status for config, data directory, secrets store, kill switch, audit log, providers, and mode. It must not reveal secrets.
 
+Current health output includes `config_ready`, `data_ready`, `audit_ready`, `secrets_store_ready`, `providers_ready`, and `kill_switch_active`.
+
 ## Uptime Checks
 
 For daemon mode, add uptime checks in a future ExecPlan. For CLI mode, smoke tests are the initial health substitute.
@@ -89,6 +104,13 @@ No external dashboard is required initially. EP-008 should define a minimal loca
 - Execution attempts by mode.
 - Kill switch activation.
 
+Example local inspection patterns:
+
+- Filter risk decisions by searching for `"command":"risk"` and `"result":"rejected"`.
+- Filter provider failures by searching for `"operation":"snapshot"` or `"operation":"advise"` with `"result":"failure"`.
+- Filter audit failures by searching for `"operation":"append_audit"` and `"result":"failure"`.
+- Filter kill-switch related health state by searching for `"kill_switch_active":true`.
+
 ## Alerts
 
 Alert expectations for production:
@@ -100,6 +122,7 @@ Alert expectations for production:
 - Repeated provider rate-limit errors.
 - State verification failure.
 - Secret redaction test failure in CI.
+- Health output missing `secrets_store_ready` or `providers_ready`.
 
 ## Service-Level Indicators
 

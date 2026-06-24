@@ -74,7 +74,8 @@ fn config_and_state_services_succeed() {
     assert!(health_report.config_ready);
     assert!(health_report.data_ready);
     assert!(health_report.audit_ready);
-    assert!(health_report.mock_providers_ready);
+    assert!(health_report.secrets_store_ready);
+    assert!(health_report.providers_ready);
     assert!(!health_report.kill_switch_active);
 }
 
@@ -184,4 +185,6 @@ fn health_reflects_missing_data_dir_when_not_initialized() {
     assert!(report.config_ready);
     assert!(!report.data_ready);
     assert!(!report.audit_ready);
+    assert!(report.secrets_store_ready);
+    assert!(report.providers_ready);
 }

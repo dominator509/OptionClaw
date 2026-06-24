@@ -97,12 +97,13 @@ pub fn print_risk_report(mode: TradingMode, report: &RiskReport) {
 
 pub fn print_health_report(report: &HealthReport) {
     println!(
-        "health ok mode={} config_ready={} data_ready={} audit_ready={} mock_providers_ready={} kill_switch_active={}",
+        "health ok mode={} config_ready={} data_ready={} audit_ready={} secrets_store_ready={} providers_ready={} kill_switch_active={}",
         report.trading_mode,
         report.config_ready,
         report.data_ready,
         report.audit_ready,
-        report.mock_providers_ready,
+        report.secrets_store_ready,
+        report.providers_ready,
         report.kill_switch_active
     );
 }

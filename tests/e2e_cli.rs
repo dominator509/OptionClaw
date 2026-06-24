@@ -258,5 +258,7 @@ fn risk_explain_and_health_report_mode_and_readiness() {
     assert!(health_stdout.contains("config_ready=true"));
     assert!(health_stdout.contains("data_ready=true"));
     assert!(health_stdout.contains("audit_ready=true"));
+    assert!(health_stdout.contains("secrets_store_ready=true"));
+    assert!(health_stdout.contains("providers_ready=true"));
     assert_plain_text(&health_output);
 }

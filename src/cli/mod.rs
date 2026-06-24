@@ -2,6 +2,7 @@ use std::process::ExitCode;
 
 use crate::{
     errors::AppError,
+    observability::{error_code_from_display, init_logging, record_metric, LogLevel, MetricEvent},
     services::{check_config, explain_risk, health, init_state, run_paper_once, verify_state},
 };
 
@@ -9,62 +10,77 @@ mod commands;
 mod output;
 
 pub fn run() -> ExitCode {
+    init_logging(LogLevel::Info);
     match commands::parse_command() {
         Ok(commands::Command::Help) => {
             output::print_help();
+            record_metric(MetricEvent::command_success("help"));
             ExitCode::SUCCESS
         }
         Ok(commands::Command::Version) => {
             output::print_version();
+            record_metric(MetricEvent::command_success("version"));
             ExitCode::SUCCESS
         }
         Ok(commands::Command::CheckConfig { config }) => match check_config(&config) {
             Ok(report) => {
                 output::print_check_config(&report);
+                record_metric(MetricEvent::command_success("check-config"));
                 ExitCode::SUCCESS
             }
-            Err(err) => report_cli_failure(err),
+            Err(err) => report_cli_failure("check-config", err),
         },
         Ok(commands::Command::StateInit { data_dir }) => match init_state(&data_dir) {
             Ok(report) => {
                 output::print_state_init(&report);
+                record_metric(MetricEvent::command_success("state init"));
                 ExitCode::SUCCESS
             }
-            Err(err) => report_cli_failure(err),
+            Err(err) => report_cli_failure("state init", err),
         },
         Ok(commands::Command::StateVerify { data_dir }) => match verify_state(&data_dir) {
             Ok(report) => {
                 output::print_state_verify(&report);
+                record_metric(MetricEvent::command_success("state verify"));
                 ExitCode::SUCCESS
             }
-            Err(err) => report_cli_failure(err),
+            Err(err) => report_cli_failure("state verify", err),
         },
         Ok(commands::Command::PaperRunOnce { config, fixtures }) => {
             match run_paper_once(&config, &fixtures) {
                 Ok(report) => {
                     output::print_paper_run(&report);
+                    record_metric(MetricEvent::command_success("paper run-once"));
                     ExitCode::SUCCESS
                 }
-                Err(err) => report_cli_failure(err),
+                Err(err) => report_cli_failure("paper run-once", err),
             }
         }
         Ok(commands::Command::RiskExplain {
             config,
             order_intent,
         }) => match explain_risk_command(&config, &order_intent) {
-            Ok(()) => ExitCode::SUCCESS,
-            Err(err) => report_cli_failure(err),
+            Ok(()) => {
+                record_metric(MetricEvent::command_success("risk explain"));
+                ExitCode::SUCCESS
+            }
+            Err(err) => report_cli_failure("risk explain", err),
         },
         Ok(commands::Command::Health { config }) => match health(&config) {
             Ok(report) => {
                 output::print_health_report(&report);
+                record_metric(MetricEvent::command_success("health"));
                 ExitCode::SUCCESS
             }
-            Err(err) => report_cli_failure(err),
+            Err(err) => report_cli_failure("health", err),
         },
         Err(err) => {
             output::print_error(&err);
             output::print_help();
+            record_metric(MetricEvent::command_failure(
+                "cli",
+                err.code().as_str().to_string(),
+            ));
             ExitCode::from(2)
         }
     }
@@ -80,7 +96,11 @@ fn explain_risk_command(
     Ok(())
 }
 
-fn report_cli_failure(err: AppError) -> ExitCode {
+fn report_cli_failure(command: &str, err: AppError) -> ExitCode {
+    record_metric(MetricEvent::command_failure(
+        command,
+        error_code_from_display(&err),
+    ));
     eprintln!("{err}");
     ExitCode::from(1)
 }

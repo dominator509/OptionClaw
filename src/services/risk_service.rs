@@ -12,6 +12,10 @@ use crate::{
         TradingMode,
     },
     errors::AppError,
+    observability::{
+        record_metric, record_structured_log, LogLevel, MetricEvent, StructuredField,
+        StructuredLogEvent,
+    },
     risk::evaluate_order_intent,
 };
 
@@ -88,6 +92,32 @@ pub fn explain_risk(path: impl AsRef<Path>) -> Result<RiskReport, AppError> {
     let limits = fixture.limits.to_domain()?;
     let decision =
         evaluate_order_intent(&intent, Some(&limits), &account, fixture.kill_switch_active);
+    record_metric(MetricEvent::risk_decision(decision.is_accepted()));
+    record_structured_log(
+        StructuredLogEvent::new(
+            if decision.is_accepted() {
+                LogLevel::Info
+            } else {
+                LogLevel::Warn
+            },
+            "risk",
+            "evaluate_order_intent",
+            if decision.is_accepted() {
+                "accepted"
+            } else {
+                "rejected"
+            },
+        )
+        .with_mode(intent.mode.to_string())
+        .with_order_intent_id(intent.id.clone())
+        .with_strategy_id(intent.strategy_id.clone())
+        .with_risk_profile_id(intent.risk_context_id.clone())
+        .with_field(StructuredField::plain(
+            "order_intent_path",
+            path.display().to_string(),
+        ))
+        .with_field(StructuredField::plain("decision", decision.to_string())),
+    );
 
     Ok(RiskReport {
         order_intent_path: path,

@@ -56,4 +56,15 @@ mod tests {
         let config: AppConfig = toml::from_str("trading_mode = 'paper'").expect("valid config");
         assert_eq!(config.trading_mode, TradingMode::Paper);
     }
+
+    #[test]
+    fn live_mode_fails_closed_at_validation_boundary() {
+        let config = AppConfig {
+            trading_mode: TradingMode::Live,
+        };
+        let err = config
+            .validate_security()
+            .expect_err("live mode should fail closed");
+        assert!(format!("{err}").contains("LIVE_TRADING_DISABLED"));
+    }
 }

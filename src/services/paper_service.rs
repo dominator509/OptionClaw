@@ -134,11 +134,11 @@ pub fn run_paper_once(
         load_json_file(fixture_root.join("llm").join("sample_advisory.json"))?;
 
     let market_snapshot = paper_fixture.market_snapshot.to_domain()?;
-    let advisory = AdvisoryResult {
-        score: advisory_fixture.score,
-        confidence: PercentBps::from_bps(advisory_fixture.confidence_bps)?,
-        explanation: advisory_fixture.explanation,
-    };
+    let advisory = AdvisoryResult::new(
+        advisory_fixture.score,
+        PercentBps::from_bps(advisory_fixture.confidence_bps)?,
+        advisory_fixture.explanation,
+    )?;
     let market_provider = FixtureMarketDataProvider::new(market_snapshot.clone());
     let llm_advisor = FixtureLlmAdvisor::new(advisory.clone());
     let execution_provider = FixturePaperExecutor::new();
@@ -152,7 +152,7 @@ pub fn run_paper_once(
         market: resolved_market.clone(),
         signal: Signal::new(
             SignalSource::Model,
-            advisory_fixture.score,
+            advisory.score,
             advisory.confidence,
             UNIX_EPOCH + Duration::from_secs(paper_fixture.market_snapshot.timestamp_unix_seconds),
             advisory.explanation.clone(),

@@ -147,20 +147,33 @@ Rerunning should not duplicate fixtures. If tests fail repeatedly, isolate by mo
 
 ## 12. Progress
 
-- [ ] M1 - Coverage inventory and gap list.
-- [ ] M2 - Unit and failure-mode tests.
-- [ ] M3 - Integration and contract tests.
-- [ ] M4 - E2E, smoke, and CI hardening.
-- [ ] M5 - Full verification stability.
+- [x] M1 - Coverage inventory and gap list. Completed 2026-06-23. Validation: `cargo test --lib --bins --all-features --offline` -> passed.
+- [x] M2 - Unit and failure-mode tests. Completed 2026-06-23. Validation: `cargo test --lib --bins --all-features --offline` -> passed.
+- [x] M3 - Integration and contract tests. Completed 2026-06-23. Validation: `cargo test --test integration_services --all-features --offline`, `cargo test --test integration_persistence --all-features --offline`, `cargo test --test integration_security --all-features --offline`, `cargo test --test contract_adapters --all-features --offline` -> passed.
+- [x] M4 - E2E, smoke, and CI hardening. Completed 2026-06-23. Validation: `cargo test --test e2e_cli --all-features --offline`, `cargo test --test integration_smoke --all-features --offline` -> passed. CI now calls `./scripts/verify.sh`.
+- [x] M5 - Full verification stability. Completed 2026-06-23. Validation: documented native fallback sequence (`cargo fmt --all -- --check`, `cargo clippy --all-targets --all-features --offline -- -D warnings`, `cargo check --all-targets --all-features --offline`, `cargo build --release --offline`, plus the test suites above) -> passed. Direct `./scripts/verify.sh` invocation failed under `cmd.exe` with `'.' is not recognized as an internal or external command, operable program or batch file.`; the repo-local fallback sequence completed successfully.
 
 ## 13. Surprises & Discoveries
 
 Record coverage gaps, flaky tests, and validation failures here.
 
+- The inventory showed good coverage for domain, persistence, service, security, and CLI flows, but the LLM advisory path lacked constructor-level validation for malformed output, so invalid-provider-output regression coverage needed to be added.
+- The GitHub Actions workflow still duplicated cargo commands directly instead of calling the repo scripts, which conflicts with `TESTING.md` and the EP-007 CI hardening goal.
+- No failing tests were present at inventory time; the main gaps were missing negative-path coverage and CI command drift.
+- Unit validation exposed only harmless platform-specific warnings in the new secret-store tests, and those were resolved by narrowing the test-only imports and helpers to Unix builds.
+- The repository-local `./scripts/verify.sh` script could not be launched directly under the Windows `cmd.exe` shell, so final verification used the documented native Cargo fallback commands instead.
+
 ## 14. Decision Log
 
 Record test strategy decisions and any command/CI changes here.
 
+- Chose to harden the LLM advisory result with constructor validation so malformed provider output becomes testable without introducing live provider dependencies.
+- Chose to align CI to repository scripts instead of maintaining a separate command list in GitHub Actions.
+- Chose to keep secret-store permission coverage Unix-specific because the restrictive-mode assertion depends on POSIX file permissions.
+- Chose to treat the documented native Cargo fallback sequence as the verification source of truth when the shell wrapper could not execute `./scripts/verify.sh` on this host.
+
 ## 15. Outcomes & Retrospective
 
 Complete after M5.
+
+EP-007 is complete. The repository now has coverage for malformed LLM output, secret-store redaction and permission failure modes, live-disabled config validation, integration/contract coverage, E2E/smoke validation, and CI aligned to the documented verify script. The only environment-specific issue encountered was the Windows `cmd.exe` inability to launch `./scripts/verify.sh` directly; the documented Cargo fallback sequence passed in full.

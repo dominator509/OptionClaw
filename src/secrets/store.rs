@@ -123,3 +123,69 @@ pub fn describe_secret_store(root: impl AsRef<Path>) -> SecretStoreReport {
         encrypted: false,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[cfg(unix)]
+    use std::{
+        fs,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    #[cfg(unix)]
+    fn unique_temp_dir(name: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock should be on or after epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("optionclaw-secrets-{name}-{nanos}"));
+        if path.exists() {
+            let _ = fs::remove_dir_all(&path);
+        }
+        fs::create_dir_all(&path).expect("temp dir should be creatable");
+        path
+    }
+
+    #[test]
+    fn disabled_secret_store_fails_closed() {
+        let store = DisabledSecretStore;
+        let err = store
+            .load("broker_api_key")
+            .expect_err("missing secret should fail");
+        assert!(format!("{err}").contains("SECRET_MISSING"));
+    }
+
+    #[test]
+    fn memory_secret_store_redacts_display() {
+        let store = MemorySecretStore::new();
+        store
+            .store("llm_api_key", "opclaw_fake_key".into())
+            .expect("store should succeed");
+
+        let secret = store.load("llm_api_key").expect("load should succeed");
+        assert_eq!(secret.expose(), "opclaw_fake_key");
+        assert_eq!(format!("{secret}"), "<redacted>");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn restrictive_permissions_are_required_for_secret_files() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = unique_temp_dir("permissions");
+        let secret_path = root.join("secret.txt");
+        fs::write(&secret_path, "optionclaw-secret-v1:encrypted")
+            .expect("secret file should write");
+
+        let mut permissions = fs::metadata(&secret_path)
+            .expect("secret file should exist")
+            .permissions();
+        permissions.set_mode(0o644);
+        fs::set_permissions(&secret_path, permissions).expect("permissions should update");
+
+        let err = require_restrictive_permissions(&secret_path)
+            .expect_err("insecure permissions should fail");
+        assert!(format!("{err}").contains("INSECURE_FILE_PERMISSIONS"));
+    }
+}

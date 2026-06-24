@@ -38,13 +38,13 @@ These variables are planned contracts. Implement variables only when the linked 
 | `OPTIONCLAW_KILL_SWITCH_FILE` | Optional | all | `./var/dev/KILL_SWITCH` | No | Path checked before execution. Presence or configured state disables execution. | Must be readable if set. |
 | `OPTIONCLAW_MAX_ACCOUNT_RISK_PCT` | Required before live | sandbox/production | `1.0` | No | Max account equity at risk per order intent. | Decimal greater than 0 and less than or equal to configured cap. |
 | `OPTIONCLAW_MAX_DAILY_LOSS_PCT` | Required before live | sandbox/production | `3.0` | No | Daily loss kill threshold. | Decimal greater than 0; live mode requires value. |
-| `OPTIONCLAW_ENABLE_LIVE_TRADING` | Required before live | production | `false` | No | Explicit live-trading enable flag. | Must be exactly `true` plus all live gates; default false. |
+| `OPTIONCLAW_ENABLE_LIVE_TRADING` | Required before live | production | `false` | No | Explicit live-trading enable flag. | Must be exactly `true` plus all live gates; current CLI baseline still fails closed when live mode is selected without the remaining approvals. |
 
 ## Secrets
 
 - Use fake values only in examples and tests.
 - Do not commit `.env` files.
-- Local encrypted secret storage is implemented in EP-006.
+- Local secret handling in EP-006 is fail-closed and rejects plaintext secret files; production-grade encrypted persistence remains gated behind a later security plan.
 - Missing real credentials are STOP conditions only for tasks that cannot use mocks or fixtures.
 
 ## Local Development Setup

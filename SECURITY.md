@@ -15,6 +15,7 @@
 |---|---|
 | API key committed to git | `.gitignore`, secret scans, docs, review checklist. |
 | Secret printed in logs | Redaction wrapper and tests. |
+| Plaintext secret persistence | Fail-closed local secret-store baseline and plaintext-file rejection. |
 | LLM hallucination triggers order | Deterministic risk gate after LLM output. |
 | Misconfigured live trading | Default paper mode and live-mode validation gates. |
 | Local state corruption | Atomic writes, backups, schema verification. |
@@ -64,6 +65,7 @@ Invalid inputs must produce typed errors and fail closed.
 - Local encrypted secrets must use a documented KDF and authenticated encryption.
 - Never store wallet seed phrases or private keys unless a dedicated security ExecPlan approves custody behavior.
 - Tests use fake secrets only.
+- The current local secret-store baseline is fail-closed and rejects plaintext secret files; production-grade encrypted persistence remains gated behind a later security plan.
 
 ## Dependency Security Rules
 

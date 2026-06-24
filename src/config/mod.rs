@@ -3,7 +3,10 @@ use std::{fs, path::Path};
 use serde::Deserialize;
 
 pub use crate::domain::TradingMode;
-use crate::errors::ConfigError;
+use crate::{
+    errors::ConfigError,
+    risk::{authorize_execution, ExecutionGates},
+};
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(default)]
@@ -31,6 +34,10 @@ impl AppConfig {
             path: path.to_path_buf(),
             source: Box::new(source),
         })
+    }
+
+    pub fn validate_security(&self) -> Result<(), crate::errors::AppError> {
+        authorize_execution(self.trading_mode, ExecutionGates::default())
     }
 }
 

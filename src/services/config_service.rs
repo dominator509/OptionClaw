@@ -11,6 +11,7 @@ pub struct ConfigReport {
 pub fn check_config(path: impl AsRef<Path>) -> Result<ConfigReport, AppError> {
     let path = path.as_ref().to_path_buf();
     let config = AppConfig::load_from_path(&path)?;
+    config.validate_security()?;
     Ok(ConfigReport {
         config_path: path,
         trading_mode: config.trading_mode,

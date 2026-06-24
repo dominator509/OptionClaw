@@ -4,6 +4,7 @@ use std::{fmt, path::PathBuf};
 pub enum AppError {
     Config(ConfigError),
     Domain(DomainError),
+    Security(SecurityError),
     Input(InputError),
     Persistence(PersistenceError),
 }
@@ -63,6 +64,35 @@ pub enum DomainErrorCode {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InputErrorCode {
     Invalid,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SecurityErrorCode {
+    SecretStorageDisabled,
+    SecretMissing,
+    SecretPlaintextRejected,
+    LiveTradingDisabled,
+    KillSwitchActive,
+    InsecureFilePermissions,
+}
+
+impl SecurityErrorCode {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::SecretStorageDisabled => "SECRET_STORAGE_DISABLED",
+            Self::SecretMissing => "SECRET_MISSING",
+            Self::SecretPlaintextRejected => "SECRET_PLAINTEXT_REJECTED",
+            Self::LiveTradingDisabled => "LIVE_TRADING_DISABLED",
+            Self::KillSwitchActive => "KILL_SWITCH_ACTIVE",
+            Self::InsecureFilePermissions => "INSECURE_FILE_PERMISSIONS",
+        }
+    }
+}
+
+impl fmt::Display for SecurityErrorCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
 }
 
 impl InputErrorCode {
@@ -154,6 +184,81 @@ pub enum DomainError {
 #[derive(Debug)]
 pub enum InputError {
     Invalid { path: PathBuf, detail: String },
+}
+
+#[derive(Debug)]
+pub enum SecurityError {
+    SecretStorageDisabled { path: Option<PathBuf> },
+    SecretMissing { name: String },
+    SecretPlaintextRejected { path: PathBuf },
+    LiveTradingDisabled { mode: String },
+    KillSwitchActive,
+    InsecureFilePermissions { path: PathBuf },
+}
+
+impl SecurityError {
+    pub const fn code(&self) -> SecurityErrorCode {
+        match self {
+            Self::SecretStorageDisabled { .. } => SecurityErrorCode::SecretStorageDisabled,
+            Self::SecretMissing { .. } => SecurityErrorCode::SecretMissing,
+            Self::SecretPlaintextRejected { .. } => SecurityErrorCode::SecretPlaintextRejected,
+            Self::LiveTradingDisabled { .. } => SecurityErrorCode::LiveTradingDisabled,
+            Self::KillSwitchActive => SecurityErrorCode::KillSwitchActive,
+            Self::InsecureFilePermissions { .. } => SecurityErrorCode::InsecureFilePermissions,
+        }
+    }
+}
+
+impl fmt::Display for SecurityError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::SecretStorageDisabled { path } => {
+                if let Some(path) = path {
+                    write!(
+                        f,
+                        "{}: secret storage at {} is disabled. Hint: use paper mode or configure an approved secret store.",
+                        self.code(),
+                        path.display()
+                    )
+                } else {
+                    write!(
+                        f,
+                        "{}: secret storage is disabled. Hint: use paper mode or configure an approved secret store.",
+                        self.code()
+                    )
+                }
+            }
+            Self::SecretMissing { name } => write!(
+                f,
+                "{}: required secret `{}` is missing. Hint: configure the secret through the approved local store.",
+                self.code(),
+                name
+            ),
+            Self::SecretPlaintextRejected { path } => write!(
+                f,
+                "{}: plaintext secret file {} is not allowed. Hint: use an encrypted or approved secret store.",
+                self.code(),
+                path.display()
+            ),
+            Self::LiveTradingDisabled { mode } => write!(
+                f,
+                "{}: live trading is disabled for `{}`. Hint: stay in paper mode until production approval is complete.",
+                self.code(),
+                mode
+            ),
+            Self::KillSwitchActive => write!(
+                f,
+                "{}: kill switch is active. Hint: clear the kill switch only after the operator confirms execution may resume.",
+                self.code()
+            ),
+            Self::InsecureFilePermissions { path } => write!(
+                f,
+                "{}: insecure file permissions at {}. Hint: restrict access before storing secrets.",
+                self.code(),
+                path.display()
+            ),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -261,6 +366,8 @@ impl fmt::Display for InputError {
 }
 
 impl std::error::Error for InputError {}
+
+impl std::error::Error for SecurityError {}
 
 #[derive(Debug)]
 pub enum PersistenceError {
@@ -480,6 +587,7 @@ impl fmt::Display for AppError {
         match self {
             Self::Config(err) => err.fmt(f),
             Self::Domain(err) => err.fmt(f),
+            Self::Security(err) => err.fmt(f),
             Self::Input(err) => err.fmt(f),
             Self::Persistence(err) => err.fmt(f),
         }
@@ -518,6 +626,12 @@ impl From<DomainError> for AppError {
 impl From<ConfigError> for AppError {
     fn from(value: ConfigError) -> Self {
         Self::Config(value)
+    }
+}
+
+impl From<SecurityError> for AppError {
+    fn from(value: SecurityError) -> Self {
+        Self::Security(value)
     }
 }
 
@@ -560,6 +674,15 @@ mod tests {
         };
         assert_eq!(err.code().as_str(), "INPUT_INVALID");
         assert!(format!("{err}").contains("INPUT_INVALID"));
+    }
+
+    #[test]
+    fn security_error_codes_are_stable() {
+        let err = SecurityError::LiveTradingDisabled {
+            mode: "live".to_string(),
+        };
+        assert_eq!(err.code().as_str(), "LIVE_TRADING_DISABLED");
+        assert!(format!("{err}").contains("LIVE_TRADING_DISABLED"));
     }
 
     #[test]

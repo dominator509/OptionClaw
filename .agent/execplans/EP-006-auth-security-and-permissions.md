@@ -164,20 +164,44 @@ If security helpers exist, extend rather than replace. If encryption cannot be s
 
 ## 12. Progress
 
-- [ ] M1 - Redaction and sensitive config handling.
-- [ ] M2 - Local secret store baseline.
-- [ ] M3 - Kill switch and live-mode gates.
-- [ ] M4 - Security CLI/error behavior.
-- [ ] M5 - Security validation.
+- [x] M1 - Redaction and sensitive config handling. Completed 2026-06-23. Validation: `cargo test --lib --bins --all-features --offline` -> passed.
+- [x] M2 - Local secret store baseline. Completed 2026-06-23. Validation: `cargo test --test integration_security --all-features --offline` -> passed.
+- [x] M3 - Kill switch and live-mode gates. Completed 2026-06-23. Validation: `cargo test --test integration_security --all-features --offline` and `cargo test --test e2e_cli --all-features --offline` -> passed.
+- [x] M4 - Security CLI/error behavior. Completed 2026-06-23. Validation: `cargo test --test e2e_cli --all-features --offline` -> passed.
+- [x] M5 - Security validation. Completed 2026-06-23. Validation: `cargo fmt --all -- --check`, `cargo clippy --all-targets --all-features --offline -- -D warnings`, `cargo test --lib --bins --all-features --offline`, `cargo test --test integration_security --all-features --offline`, `cargo test --test e2e_cli --all-features --offline`, `cargo test --test integration_smoke --all-features --offline`, `cargo check --all-targets --all-features --offline` -> passed. `./scripts/security-check.sh` could not be executed through `rtk` in this environment and failed with `[rtk: %1 is not a valid Win32 application. (os error 193)]`.
 
 ## 13. Surprises & Discoveries
 
 Record repository differences and validation failures here.
 
+- `./scripts/preflight.sh` and `./scripts/security-check.sh` both failed through `rtk` with `[rtk: %1 is not a valid Win32 application. (os error 193)]`. The native Cargo validations were used for compile, lint, and test coverage instead.
+- The repository had no implemented secret store, so EP-006 landed a fail-closed secret-store baseline with redaction and plaintext-file rejection rather than introducing production encryption dependencies.
+- Live mode now fails closed through the config validation path with `LIVE_TRADING_DISABLED`, which keeps the CLI safe even without a live provider implementation.
+
 ## 14. Decision Log
 
 Record redaction, encryption, and live-gate decisions here.
 
+- Added `Redacted<T>`/`SecretString` wrappers so secret-bearing values do not leak through `Display` or `Debug`.
+- Added a fail-closed local secret-store baseline with in-memory testing support and plaintext-file rejection, and documented that production-grade encrypted persistence remains a later security-plan item.
+- Added `SecurityError` / `SecurityErrorCode` with stable codes for secret-store, plaintext-rejection, live-trading-disabled, kill-switch, and file-permission failures.
+- Added `authorize_execution(mode, gates)` plus config validation so live and other non-paper modes fail closed until all gates are satisfied.
+- Updated CLI E2E coverage to assert the live refusal surfaces `LIVE_TRADING_DISABLED`.
+
 ## 15. Outcomes & Retrospective
 
 Complete after M5.
+
+EP-006 is implemented as a local security baseline: secret values are redacted, plaintext secret files are rejected, live-mode validation fails closed, kill-switch behavior is covered, and the CLI surfaces safe security errors.
+
+Validation completed successfully with native Cargo fallbacks:
+
+- `cargo fmt --all -- --check`
+- `cargo clippy --all-targets --all-features --offline -- -D warnings`
+- `cargo check --all-targets --all-features --offline`
+- `cargo test --lib --bins --all-features --offline`
+- `cargo test --test integration_security --all-features --offline`
+- `cargo test --test e2e_cli --all-features --offline`
+- `cargo test --test integration_smoke --all-features --offline`
+
+The only unresolved environment issue is the shell-wrapper failure for `./scripts/security-check.sh` under `rtk`; the repo-local security behavior itself is covered by tests and compile/lint gates.

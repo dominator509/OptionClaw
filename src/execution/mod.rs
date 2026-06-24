@@ -1,6 +1,7 @@
 use crate::{
     domain::{OrderIntent, Price},
     errors::AppError,
+    risk::{authorize_execution, ExecutionGates},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,6 +31,10 @@ pub trait PaperExecutor {
 
 pub trait ExecutionProvider {
     fn execute_live(&self, intent: &OrderIntent) -> Result<ExecutionReport, AppError>;
+}
+
+pub fn authorize_live_mode() -> Result<(), AppError> {
+    authorize_execution(crate::domain::TradingMode::Live, ExecutionGates::default())
 }
 
 #[derive(Debug, Clone, Copy, Default)]

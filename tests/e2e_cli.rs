@@ -125,6 +125,24 @@ fn check_config_reports_mode_and_rejects_invalid_files() {
 }
 
 #[test]
+fn check_config_refuses_live_mode_without_gates() {
+    let root = unique_temp_dir("live-config");
+    let config_path = write_config(&root, "live");
+
+    let output = binary()
+        .args(["check-config", "--config"])
+        .arg(&config_path)
+        .output()
+        .expect("binary should run");
+
+    assert!(!output.status.success(), "live config should fail closed");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("LIVE_TRADING_DISABLED"));
+    assert!(stderr.contains("paper mode until production approval is complete"));
+    assert_plain_text(&output);
+}
+
+#[test]
 fn state_init_and_verify_report_readiness() {
     let root = unique_temp_dir("state");
     let data_dir = root.join("var").join("dev");
@@ -195,8 +213,8 @@ fn paper_run_once_refuses_live_mode_safely() {
 
     assert!(!output.status.success(), "live mode should be refused");
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("INPUT_INVALID"));
-    assert!(stderr.contains("paper run-once requires paper or sandbox mode"));
+    assert!(stderr.contains("LIVE_TRADING_DISABLED"));
+    assert!(stderr.contains("live trading is disabled for `live`"));
     assert_plain_text(&output);
 }
 

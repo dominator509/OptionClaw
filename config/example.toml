@@ -1,0 +1,3 @@
+# OptionClaw example configuration
+# This file uses only fake, non-secret values.
+trading_mode = "paper"

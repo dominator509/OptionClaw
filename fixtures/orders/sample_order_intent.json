@@ -1,0 +1,36 @@
+{
+  "order_intent": {
+    "id": "sample-order-1",
+    "mode": "paper",
+    "contract": {
+      "symbol": "AAPL260201C00100000",
+      "underlying": "AAPL",
+      "expiration": { "year": 2026, "month": 2, "day": 1 },
+      "strike_micros": 1000000,
+      "kind": "Call",
+      "venue_id": null,
+      "as_of": { "year": 2026, "month": 1, "day": 1 }
+    },
+    "side": "Buy",
+    "quantity": 1,
+    "order_type": "Limit",
+    "limit_price_micros": 5000,
+    "estimated_max_loss_micros": 5000,
+    "strategy_id": "strategy-1",
+    "risk_context_id": "risk-1",
+    "created_at_unix_seconds": 1704067201
+  },
+  "account": {
+    "account_id": "acct-1",
+    "equity_micros": 10000000,
+    "available_cash_micros": 7000000,
+    "daily_loss_bps": 0
+  },
+  "limits": {
+    "max_account_risk_bps": 100,
+    "max_daily_loss_bps": 100,
+    "max_contracts_per_order": 1,
+    "allow_live": false
+  },
+  "kill_switch_active": false
+}

@@ -1,0 +1,38 @@
+{
+  "market_snapshot": {
+    "contract": {
+      "symbol": "AAPL260201C00100000",
+      "underlying": "AAPL",
+      "expiration": { "year": 2026, "month": 2, "day": 1 },
+      "strike_micros": 1000000,
+      "kind": "Call",
+      "venue_id": null,
+      "as_of": { "year": 2026, "month": 1, "day": 1 }
+    },
+    "timestamp_unix_seconds": 1704067201,
+    "underlying_price_micros": 19000000,
+    "option_bid_micros": 4500,
+    "option_ask_micros": 5000,
+    "option_last_micros": 4800,
+    "implied_volatility_bps": 2500
+  },
+  "account": {
+    "equity_micros": 10000000,
+    "available_cash_micros": 7000000,
+    "daily_loss_bps": 0
+  },
+  "risk_limits": {
+    "max_account_risk_bps": 100,
+    "max_daily_loss_bps": 100,
+    "max_contracts_per_order": 1,
+    "allow_live": false
+  },
+  "order": {
+    "id": "paper-order-1",
+    "strategy_id": "paper-strategy",
+    "risk_context_id": "paper-risk-context",
+    "quantity": 1,
+    "side": "Buy",
+    "order_type": "Limit"
+  }
+}

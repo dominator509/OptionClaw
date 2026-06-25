@@ -11,15 +11,15 @@
 
 ## Deployment Architecture
 
-Initial deployment is a single Rust binary on operator-controlled hardware:
+Initial deployment is a single Rust binary on operator-controlled hardware. The
+manual release layout is documented in [`deploy/README.md`](deploy/README.md):
 
 ```text
 optionclaw binary
-  + config file
-  + encrypted secrets file
-  + local data directory
+  + /opt/optionclaw/bin/optionclaw
+  + /opt/optionclaw/config/production.toml
+  + /opt/optionclaw/var/dev
   + logs/metrics output
-  + optional systemd service or container wrapper
 ```
 
 No database server is required initially.
@@ -33,6 +33,13 @@ The release artifact is the optimized Rust binary produced by:
 ```
 
 Expected binary path after EP-001: `target/release/optionclaw`.
+Release copies should be staged under `/opt/optionclaw/releases/<version>/`.
+
+## Production Example Config
+
+Use [`config/production.example.toml`](config/production.example.toml) as the
+paper-mode production template. It defaults to `paper` and contains only fake,
+non-secret values.
 
 ## Release Flow
 
@@ -41,10 +48,10 @@ Expected binary path after EP-001: `target/release/optionclaw`.
 3. Run `./scripts/production-readiness-check.sh` before production release.
 4. Tag release only after verification passes.
 5. Build release artifact.
-6. Deploy to staging target.
+6. Deploy to staging target or local paper target.
 7. Run smoke tests.
-8. Deploy to production paper mode first.
-9. Live mode requires explicit production approval.
+8. Deploy to production paper mode first using `deploy/README.md`.
+9. Live mode requires explicit production approval after EP-010.
 
 ## Deployment Steps
 
@@ -53,10 +60,12 @@ Planned after EP-009:
 ```sh
 ./scripts/verify.sh
 ./scripts/build.sh
+install -d /opt/optionclaw/bin /opt/optionclaw/config /opt/optionclaw/releases/<version>
+install -m 0755 target/release/optionclaw /opt/optionclaw/releases/<version>/optionclaw
 install -m 0755 target/release/optionclaw /opt/optionclaw/bin/optionclaw
-install -m 0640 config/production.example.toml /etc/optionclaw/config.toml
-/opt/optionclaw/bin/optionclaw check-config --config /etc/optionclaw/config.toml
-/opt/optionclaw/bin/optionclaw health --config /etc/optionclaw/config.toml
+install -m 0640 config/production.example.toml /opt/optionclaw/config/production.toml
+/opt/optionclaw/bin/optionclaw check-config --config /opt/optionclaw/config/production.toml
+/opt/optionclaw/bin/optionclaw health --config /opt/optionclaw/config/production.toml
 ```
 
 These commands require adaptation during EP-009 based on the actual deployment target. Do not run production install commands without explicit permission.
@@ -80,8 +89,8 @@ Follow `ROLLBACK.md`. Minimum rollback is binary rollback plus config rollback a
 
 ```sh
 optionclaw --help
-optionclaw check-config --config /etc/optionclaw/config.toml
-optionclaw health --config /etc/optionclaw/config.toml
+optionclaw check-config --config /opt/optionclaw/config/production.toml
+optionclaw health --config /opt/optionclaw/config/production.toml
 ```
 
 Live trading smoke tests must not submit live orders. Use paper/sandbox mode.

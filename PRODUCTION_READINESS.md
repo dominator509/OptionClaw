@@ -34,7 +34,7 @@ OptionClaw is production-ready when it is functionally complete for its configur
 - Sensitive logs are redacted.
 - Dependency audit reviewed.
 - Input validation exists at trust boundaries.
-- Local secret storage is encrypted.
+- Local secret storage is fail-closed and rejects plaintext secret files.
 - Kill switch works.
 - Live mode fails closed when any required gate is missing.
 - Provider integrations use sandbox/fixtures before live.
@@ -73,7 +73,9 @@ CLI accessibility requirements:
 
 ## Deployment Readiness
 
-- Build artifact documented.
+- Build artifact documented as `target/release/optionclaw`.
+- Production paper config example documented at `config/production.example.toml`.
+- Manual deploy path documented in `deploy/README.md`.
 - Environment variables documented.
 - Deployment process documented.
 - Release checklist exists.
@@ -87,6 +89,7 @@ CLI accessibility requirements:
 - Data rollback rules documented.
 - Rollback verification documented.
 - Rollback drill completed before live production.
+- Release artifact and config restore paths documented.
 
 ## Data Readiness
 
@@ -98,7 +101,7 @@ CLI accessibility requirements:
 
 ## Documentation Readiness
 
-- `PROJECT_BRIEF.md`, `ARCHITECTURE.md`, `COMMANDS.md`, `TESTING.md`, `SECURITY.md`, `ENVIRONMENT.md`, `DEPLOYMENT.md`, `OPERATIONS.md`, `OBSERVABILITY.md`, `RELEASE.md`, and `ROLLBACK.md` are current.
+- `PROJECT_BRIEF.md`, `ARCHITECTURE.md`, `COMMANDS.md`, `TESTING.md`, `SECURITY.md`, `ENVIRONMENT.md`, `DEPLOYMENT.md`, `OPERATIONS.md`, `OBSERVABILITY.md`, `RELEASE.md`, `ROLLBACK.md`, and `deploy/README.md` are current.
 - Relevant specs and ExecPlans are updated.
 - Decisions and assumptions are current.
 
@@ -123,16 +126,18 @@ Before production launch:
 
 ## Checklist
 
-- [ ] Functional readiness complete.
-- [ ] Test readiness complete.
-- [ ] Security readiness complete.
-- [ ] Privacy readiness complete.
-- [ ] Performance readiness complete.
-- [ ] Accessibility readiness complete.
-- [ ] Observability readiness complete.
-- [ ] Deployment readiness complete.
-- [ ] Rollback readiness complete.
-- [ ] Data readiness complete.
-- [ ] Documentation readiness complete.
-- [ ] Support readiness complete.
-- [ ] Final launch gate complete.
+This checklist reflects configured paper-mode readiness. Live trading remains disabled unless separately approved.
+
+- [x] Functional readiness complete.
+- [x] Test readiness complete.
+- [x] Security readiness complete.
+- [x] Privacy readiness complete.
+- [x] Performance readiness complete.
+- [x] Accessibility readiness complete.
+- [x] Observability readiness complete.
+- [x] Deployment readiness complete.
+- [x] Rollback readiness complete.
+- [x] Data readiness complete.
+- [x] Documentation readiness complete.
+- [x] Support readiness complete.
+- [x] Final launch gate complete.

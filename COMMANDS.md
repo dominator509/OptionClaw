@@ -111,6 +111,7 @@ cargo test --test e2e_cli --all-features --offline
 cargo build --release --offline
 cargo run --offline -- --help
 cargo run --offline -- check-config --config config/example.toml
+cargo audit --no-fetch --stale
 ```
 
 After EP-003 completes:
@@ -124,6 +125,12 @@ After EP-004 completes:
 
 ```sh
 cargo run -- paper run-once --config config/example.toml --fixtures fixtures/market/sample_snapshot.json
+```
+
+After EP-008 completes:
+
+```sh
+cargo run -- health --config config/example.toml
 ```
 
 ## Repository Bootstrap and Publish

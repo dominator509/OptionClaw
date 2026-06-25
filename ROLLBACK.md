@@ -31,13 +31,12 @@ The operator or release owner makes the rollback decision. During a SEV-1 incide
 Planned production steps after EP-009:
 
 ```sh
-systemctl stop optionclaw
 cp /opt/optionclaw/releases/<previous>/optionclaw /opt/optionclaw/bin/optionclaw
-systemctl start optionclaw
-optionclaw health --config /etc/optionclaw/config.toml
+optionclaw health --config /opt/optionclaw/config/production.toml
 ```
 
-Adapt service commands to actual deployment. Do not run production service commands without permission.
+Restart the operator's supervisor or shell-managed process after swapping the binary.
+Do not run production service commands without permission.
 
 ## Database Rollback
 
@@ -49,6 +48,7 @@ No database initially. For local file state:
 4. Restore backup directory contents into the data directory.
 5. Run state verification.
 6. Run smoke test.
+7. Confirm the restored config still points at `/opt/optionclaw/config/production.toml`.
 
 Current local layout:
 
@@ -60,10 +60,10 @@ Current local layout:
 ## Config Rollback
 
 1. Stop OptionClaw if running as a daemon.
-2. Restore previous config file.
-3. Run `optionclaw check-config --config <path>`.
+2. Restore `/opt/optionclaw/config/production.toml` from backup or the prior release bundle.
+3. Run `optionclaw check-config --config /opt/optionclaw/config/production.toml`.
 4. Start OptionClaw or rerun command.
-5. Run health check.
+5. Run `optionclaw health --config /opt/optionclaw/config/production.toml`.
 
 ## Feature Flag / Mode Rollback
 

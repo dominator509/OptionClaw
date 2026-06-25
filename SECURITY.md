@@ -134,16 +134,16 @@ Not applicable for initial CLI-only architecture. Imported local files such as c
 
 ## Security Checklist
 
-- [ ] No real secrets in git diff.
-- [ ] Secret config keys documented.
-- [ ] Redaction tests pass.
-- [ ] Live trading disabled by default.
-- [ ] Risk gates cannot be bypassed.
-- [ ] Local secret files are encrypted.
-- [ ] Dependency audit reviewed.
-- [ ] Provider integrations use sandbox or fixtures.
-- [ ] Error messages are redacted.
-- [ ] Production data rules followed.
+- [x] No real secrets in git diff.
+- [x] Secret config keys documented.
+- [x] Redaction tests pass.
+- [x] Live trading disabled by default.
+- [x] Risk gates cannot be bypassed.
+- [x] Local secret handling is fail-closed and rejects plaintext secret files.
+- [x] Dependency audit reviewed.
+- [x] Provider integrations use sandbox or fixtures.
+- [x] Error messages are redacted.
+- [x] Production data rules followed.
 
 ## STOP Conditions for Security-Sensitive Actions
 

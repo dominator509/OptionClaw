@@ -47,6 +47,8 @@ Update this section if repository conventions differ.
 - Smoke test passes.
 - Release notes drafted.
 - Rollback method documented.
+- Release artifact path documented as `target/release/optionclaw`.
+- Production paper config example available at `config/production.example.toml`.
 
 ## Release Checklist
 
@@ -56,6 +58,8 @@ Update this section if repository conventions differ.
 - [ ] Run `./scripts/production-readiness-check.sh` for production releases.
 - [ ] Build release artifact.
 - [ ] Deploy to staging/paper target.
+- [ ] Copy `target/release/optionclaw` to the release directory described in `deploy/README.md`.
+- [ ] Copy `config/production.example.toml` to the operator-owned production config path.
 - [ ] Run staging smoke tests.
 - [ ] Confirm logs are redacted.
 - [ ] Confirm rollback artifact exists.
@@ -92,6 +96,7 @@ Release notes must include:
 - Security changes.
 - Known limitations.
 - Rollback instructions.
+- Deployment path and smoke verification commands.
 
 ## Post-Release Monitoring
 

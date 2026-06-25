@@ -1,0 +1,5 @@
+# OptionClaw production paper-mode example
+# Copy this file into an operator-owned config directory, such as
+# /opt/optionclaw/config/production.toml.
+# This example contains only fake, non-secret values.
+trading_mode = "paper"

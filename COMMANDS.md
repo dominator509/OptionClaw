@@ -139,6 +139,7 @@ Use these commands when initializing a brand-new Git repository or publishing th
 
 ```sh
 git init
+git branch -M main
 git add .
 git commit -m "<message>"
 gh auth status

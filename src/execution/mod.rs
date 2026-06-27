@@ -14,6 +14,7 @@ pub enum ExecutionMode {
 pub enum ExecutionStatus {
     PaperFilled,
     LiveDisabled,
+    LiveSubmitted,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

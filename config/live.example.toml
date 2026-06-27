@@ -1,0 +1,16 @@
+# OptionClaw live-readiness example configuration.
+# All values are fake/non-secret. Real Alpaca credentials must be supplied only
+# through OPTIONCLAW_ALPACA_API_KEY and OPTIONCLAW_ALPACA_API_SECRET.
+
+trading_mode = "live"
+provider = "alpaca"
+provider_environment = "sandbox"
+strategy_id = "aggressive-growth-v1"
+risk_profile_id = "aggressive-growth-risk-v1"
+
+max_account_risk_bps = 100
+max_daily_loss_bps = 300
+max_contracts_per_order = 1
+
+kill_switch_file = "var/dev/live/KILL_SWITCH"
+approval_artifact = "var/dev/live/live-approval.json"

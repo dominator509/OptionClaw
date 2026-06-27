@@ -16,6 +16,14 @@ Default package manager/build tool: Cargo for Rust.
 
 If repository discovery finds a different build system, update this file and the scripts before running any non-documented command.
 
+On Windows hosts where Cargo is installed but not on `PATH`, use the local
+Cargo binary path as the equivalent prefix for documented Cargo commands:
+
+```sh
+C:\Users\domin\.cargo\bin\cargo.exe --version
+C:\Users\domin\.cargo\bin\cargo.exe <documented-cargo-arguments>
+```
+
 ## Allowed Commands
 
 | Purpose | Command | Expected Success Output |
@@ -23,6 +31,7 @@ If repository discovery finds a different build system, update this file and the
 | Preflight | `./scripts/preflight.sh` | `preflight: ok` |
 | Install dependencies | `./scripts/install.sh` | `install: ok` |
 | Lint | `./scripts/lint.sh` | `lint: ok` |
+| Format apply | `cargo fmt --all` | Rust sources are formatted in place |
 | Format check | `./scripts/format-check.sh` | `format check: ok` |
 | Typecheck/static validation | `./scripts/typecheck.sh` | `typecheck: ok` |
 | Unit tests | `./scripts/test-unit.sh` | `unit tests: ok` |
@@ -44,7 +53,13 @@ Use only when the active ExecPlan explicitly requires dependency changes:
 
 ```sh
 cargo add <crate-name>
+cargo add <crate-name>@<version>
 cargo add <crate-name> --features <feature-a>,<feature-b>
+cargo add <crate-name>@<version> --features <feature-a>,<feature-b>
+cargo add <crate-name> --no-default-features --features <feature-a>,<feature-b>
+cargo add <crate-name>@<version> --no-default-features --features <feature-a>,<feature-b>
+cargo add <crate-name> --dev
+cargo add <crate-name>@<version> --dev
 cargo update -p <crate-name>
 ```
 
@@ -96,6 +111,26 @@ cargo run -- --help
 cargo run -- check-config --config config/example.toml
 ```
 
+If a POSIX `sh` runner is available but direct `./scripts/*.sh` invocation is
+not honored by the host shell, run the same documented script through `sh`:
+
+```sh
+sh ./scripts/preflight.sh
+sh ./scripts/install.sh
+sh ./scripts/lint.sh
+sh ./scripts/format-check.sh
+sh ./scripts/typecheck.sh
+sh ./scripts/test-unit.sh
+sh ./scripts/test-integration.sh
+sh ./scripts/test-e2e.sh
+sh ./scripts/build.sh
+sh ./scripts/security-check.sh
+sh ./scripts/dependency-audit.sh
+sh ./scripts/smoke-test.sh
+sh ./scripts/verify.sh
+sh ./scripts/production-readiness-check.sh
+```
+
 These commands are the native equivalents of the repository scripts and may be used only when the script wrappers are not executable in the current environment.
 
 If the machine cannot reach crates.io, add `--offline` to the Cargo commands above. Use the offline form only when the required crates are already present in the local Cargo cache.
@@ -106,8 +141,11 @@ cargo test --lib --bins --all-features --offline
 cargo test --test integration_smoke --all-features --offline
 cargo test --test integration_persistence --all-features --offline
 cargo test --test integration_services --all-features --offline
+cargo test --test integration_live --all-features --offline
 cargo test --test contract_adapters --all-features --offline
+cargo test --test contract_alpaca --all-features --offline
 cargo test --test e2e_cli --all-features --offline
+cargo test --test e2e_live_cli --all-features --offline
 cargo build --release --offline
 cargo run --offline -- --help
 cargo run --offline -- check-config --config config/example.toml
@@ -131,6 +169,14 @@ After EP-008 completes:
 
 ```sh
 cargo run -- health --config config/example.toml
+```
+
+After EP-011 completes:
+
+```sh
+cargo run -- research backtest --config config/live.example.toml --fixtures fixtures/research/aggressive_growth.json
+cargo run -- research approve --config config/live.example.toml --report var/dev/research/backtest-report.json
+cargo run -- live check --config config/live.example.toml
 ```
 
 ## Repository Bootstrap and Publish

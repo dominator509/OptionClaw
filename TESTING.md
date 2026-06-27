@@ -20,12 +20,14 @@
 - Use fixtures under `fixtures/` and temporary directories.
 - Test local file persistence, schema versions, atomic writes, audit log append, backup, restore, and corruption handling.
 - Test adapter traits against mock implementations before provider-specific implementations.
+- Test EP-011 Alpaca adapter behavior with local HTTP mocks only.
 - Never call live broker, exchange, wallet, model, or news APIs in standard integration tests.
 
 ## E2E Test Rules
 
 - E2E tests exercise the compiled CLI or `cargo run` equivalent.
 - Required flows: `--help`, `check-config`, `state init`, `state verify`, `paper run-once`, `risk explain`, and `health` as those commands become available.
+- Live E2E tests must cover refusal paths such as missing `--confirm-live`, non-live modes, stale ROI evidence, and redacted output.
 - CLI errors must produce nonzero exit codes and readable messages.
 - Output must not rely on color only.
 
@@ -40,6 +42,8 @@ Contract tests are required for:
 - CLI command input/output contracts.
 
 Provider-specific contract tests must run against fixtures or sandbox environments only unless explicit live permission exists.
+
+EP-011 Alpaca contract tests must cover account status/options capability, option contracts, order preview/submit/cancel/status, auth failure, rate limit, rejection, and partial fill using mocks.
 
 ## Smoke Test Rules
 
@@ -77,6 +81,7 @@ For CLI accessibility:
 - Config tests must fail closed when live mode lacks required risk settings.
 - Secret storage tests must verify plaintext is not written to expected encrypted files.
 - Live execution tests must verify disabled-by-default behavior.
+- Live approval tests must verify missing secrets, stale approval, config-hash mismatch, insufficient options level, active kill switch, and single-submit behavior.
 
 ## Test Data Rules
 

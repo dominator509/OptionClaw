@@ -1,0 +1,9 @@
+{
+  "annualized_net_roi_bps": 2500,
+  "forward_paper_roi_bps": 800,
+  "profit_factor_bps": 13500,
+  "max_drawdown_bps": 2000,
+  "backtest_trades": 200,
+  "forward_paper_trades": 30,
+  "risk_gate_bypasses": 0
+}

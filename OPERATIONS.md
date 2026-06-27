@@ -21,6 +21,7 @@
 
 - Start in production paper mode.
 - Enable live mode only after production readiness and explicit approval.
+- For EP-011 Alpaca live readiness, run `research backtest`, `research approve`, and `live check` before any `live submit` attempt.
 - Keep rollback artifact available.
 - Monitor health, logs, risk rejections, provider errors, and kill-switch state.
 - Monitor `config_ready`, `data_ready`, `audit_ready`, `secrets_store_ready`, `providers_ready`, and `kill_switch_active` in health output.
@@ -43,7 +44,19 @@ Health must report:
 - Provider mode readiness.
 - Audit log write readiness.
 
-In paper mode, `secrets_store_ready` and `providers_ready` should be `true`. In unsupported live mode, those readiness signals should remain false until a later ExecPlan adds the missing production integrations.
+In paper mode, `secrets_store_ready` and `providers_ready` should be `true`. EP-011 live readiness is checked by `optionclaw live check --config <path>` because it must contact the configured Alpaca endpoint and validate approval artifacts.
+
+## EP-011 Live Readiness Runbook
+
+1. Keep the kill-switch file path configured and verify the file is absent before checks.
+2. Supply Alpaca credentials only through `OPTIONCLAW_ALPACA_API_KEY` and `OPTIONCLAW_ALPACA_API_SECRET`.
+3. Set `OPTIONCLAW_ENABLE_LIVE_TRADING=true` only for the shell/session that is intentionally performing live readiness work.
+4. Run `optionclaw research backtest --config <path> --fixtures <path>`.
+5. Run `optionclaw research approve --config <path> --report <path>`.
+6. Run `optionclaw live check --config <path>`.
+7. Submit only with `optionclaw live submit --config <path> --order-intent <path> --confirm-live` after the operator confirms real live execution is intended.
+
+If any step fails, do not retry by weakening risk caps or deleting the kill switch. Fix the specific failed gate or stop.
 
 ## Common Failure Modes
 
@@ -58,6 +71,8 @@ In paper mode, `secrets_store_ready` and `providers_ready` should be `true`. In 
 | Audit write failure | Execution refused | Stop trading commands | Fix disk/path permissions or restore storage. |
 | Secret store unavailable | Health shows `secrets_store_ready=false` | Stay in paper mode or stop live work | Add the approved encrypted secret store before retrying. |
 | Provider readiness false | Health shows `providers_ready=false` | Stay in paper mode or pause live work | Use mock/fixture paths until provider setup is complete. |
+| Stale live approval | `live check` or `live submit` reports stale approval | Do not submit | Rerun backtest/forward-paper evidence and approval if still valid. |
+| Options level insufficient | `live check` reports options level below 2 | Do not submit | Resolve with broker outside OptionClaw; code cannot grant broker approval. |
 
 ## Troubleshooting
 

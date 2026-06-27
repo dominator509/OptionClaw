@@ -32,9 +32,17 @@ Initial local CLI mode has no user login. The operator controls local filesystem
 Initial authorization is command/config based:
 
 - Default mode is paper trading.
-- Live mode requires explicit config, risk limits, kill switch, provider credentials, and production-readiness approval.
+- Live mode requires explicit config, env-only provider credentials, risk limits, inactive kill switch, provider/account capability, fresh ROI approval artifact, and production-readiness approval.
 - Dangerous commands must refuse to run without explicit documented gates.
 - File permissions must restrict local secrets and state where supported.
+
+## EP-011 Live Approval Rules
+
+- Internal live software approval is not broker, KYC, legal, tax, regulatory, or profitability approval.
+- Alpaca credentials are read only from `OPTIONCLAW_ALPACA_API_KEY` and `OPTIONCLAW_ALPACA_API_SECRET`.
+- Approval artifacts contain ROI evidence, strategy/risk IDs, config hash, timestamps, and an internal signature; they must not contain raw credentials or full broker payloads.
+- Live submit requires `OPTIONCLAW_ENABLE_LIVE_TRADING=true`, `trading_mode = "live"`, `--confirm-live`, Alpaca options level 2 or higher, and an inactive kill switch.
+- First release permits only buy-side long calls and long puts.
 
 ## Input Validation Rules
 
@@ -66,6 +74,7 @@ Invalid inputs must produce typed errors and fail closed.
 - Never store wallet seed phrases or private keys unless a dedicated security ExecPlan approves custody behavior.
 - Tests use fake secrets only.
 - The current local secret-store baseline is fail-closed and rejects plaintext secret files; production-grade encrypted persistence remains gated behind a later security plan.
+- EP-011 Alpaca credentials are env-only for v1 live execution and must never be serialized to disk.
 
 ## Dependency Security Rules
 
@@ -143,6 +152,7 @@ Not applicable for initial CLI-only architecture. Imported local files such as c
 - [x] Dependency audit reviewed.
 - [x] Provider integrations use sandbox or fixtures.
 - [x] Error messages are redacted.
+- [x] EP-011 live gates use env-only credentials, mock contract tests, and fail-closed approval checks.
 - [x] Production data rules followed.
 
 ## STOP Conditions for Security-Sensitive Actions

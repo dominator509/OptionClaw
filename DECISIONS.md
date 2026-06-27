@@ -10,6 +10,8 @@
 | D-004 | 2026-06-22 | Paper trading is default and live trading is gated | Accepted | Blueprint | Safety/Security | Inline |
 | D-005 | 2026-06-22 | Provider integrations use traits and fixtures before live adapters | Accepted | Blueprint | Integrations | Inline |
 | D-006 | 2026-06-22 | LLM output is advisory and cannot bypass deterministic risk gates | Accepted | Blueprint | Domain/Risk | Inline |
+| D-007 | 2026-06-25 | Alpaca is the first live options provider | Accepted | EP-011 | Live execution | Inline |
+| D-008 | 2026-06-25 | ROI approval is an expiring internal evidence gate | Accepted | EP-011 | Research/Risk | Inline |
 
 ## Initial ADR Entries
 
@@ -72,6 +74,26 @@
 - Status: Accepted.
 - Date: 2026-06-22.
 - Owner: Blueprint.
+
+### D-007: Alpaca is the first live options provider
+
+- Context: EP-011 targets live-readiness for US-listed equity options and Alpaca documentation supports options trading, sandbox fixtures, market data, and market/limit day orders.
+- Decision: Implement Alpaca first behind repository provider traits, with level-2 long calls and long puts only.
+- Alternatives considered: Add multiple brokers, use unofficial SDKs, delay provider selection.
+- Consequences: Narrower validation surface, mockable HTTP contract tests, and no second broker until Alpaca live readiness is complete.
+- Status: Accepted.
+- Date: 2026-06-25.
+- Owner: EP-011.
+
+### D-008: ROI approval is an expiring internal evidence gate
+
+- Context: The project needs aggressive ROI evidence without promising future returns.
+- Decision: Require signed internal approval artifacts with ROI, drawdown, trade-count, profit-factor, zero-bypass, config-hash, and seven-day freshness checks.
+- Alternatives considered: Manual approval only, static config flag, or guaranteed-profit language.
+- Consequences: Live submit remains blocked when evidence is stale, mismatched, or below thresholds; external broker/legal/profitability approval remains outside the repository.
+- Status: Accepted.
+- Date: 2026-06-25.
+- Owner: EP-011.
 
 ## ADR Index
 

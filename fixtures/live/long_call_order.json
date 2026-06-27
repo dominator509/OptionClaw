@@ -1,0 +1,21 @@
+{
+  "id": "live-long-call-1",
+  "mode": "live",
+  "contract": {
+    "symbol": "AAPL260201C00100000",
+    "underlying": "AAPL",
+    "expiration": { "year": 2026, "month": 2, "day": 1 },
+    "strike_micros": 100000000,
+    "kind": "Call",
+    "venue_id": null,
+    "as_of": { "year": 2026, "month": 1, "day": 1 }
+  },
+  "side": "Buy",
+  "quantity": 1,
+  "order_type": "Limit",
+  "limit_price_micros": 1250000,
+  "estimated_max_loss_micros": 1250000,
+  "strategy_id": "aggressive-growth-v1",
+  "risk_context_id": "aggressive-growth-risk-v1",
+  "created_at_unix_seconds": 1704067201
+}

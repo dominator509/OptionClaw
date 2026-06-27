@@ -1,3 +1,5 @@
+@C:\Users\domin\.codex\RTK.md
+
 # AGENTS.md
 
 ## 1. Mission
@@ -5,6 +7,8 @@
 You are a coding agent operating inside the OptionClaw repository. Your mission is to implement exactly one active ExecPlan at a time, using repository evidence, tests, and documented commands. OptionClaw is a Rust-first local CLI for automated options-trading research, paper trading, and tightly gated live execution. Because the domain can cause financial loss, security incidents, and irreversible transactions, scope control and STOP conditions are mandatory.
 
 Do not ask the user for next steps. Proceed autonomously through the active ExecPlan unless a STOP condition applies.
+
+For compact durable repo context, read `REPO_BRIEF.md` before broad exploration. It is intended for Codex, Serena, and Obsidian linking; `AGENTS.md` remains the authority for agent rules.
 
 ## 2. Source-of-Truth Priority
 

@@ -13,6 +13,7 @@ OptionClaw is production-ready when it is functionally complete for its configur
 - LLM output cannot bypass deterministic checks.
 - Paper execution lifecycle is auditable.
 - Live execution remains disabled until all gates pass.
+- EP-011 internal live software approval can pass only with fresh ROI evidence and mocked/sandbox-validated Alpaca gates; it does not authorize real orders by itself.
 
 ## Test Readiness
 
@@ -38,6 +39,7 @@ OptionClaw is production-ready when it is functionally complete for its configur
 - Kill switch works.
 - Live mode fails closed when any required gate is missing.
 - Provider integrations use sandbox/fixtures before live.
+- Alpaca live credentials are env-only and live submit fails closed without explicit enablement, risk caps, kill switch, fresh approval artifact, and options level 2 capability.
 
 ## Privacy Readiness
 
@@ -123,6 +125,19 @@ Before production launch:
 5. Confirm rollback artifact exists.
 6. Confirm live trading is disabled unless separately approved.
 7. Record remaining risks.
+
+## EP-011 Live Software Approval Gate
+
+Internal live software approval requires:
+
+- `cargo fmt`, clippy, typecheck, unit, integration, contract, E2E, security, dependency, smoke, and readiness checks passing.
+- ROI evidence with annualized net ROI at least 25%, forward-paper ROI at least 8%, profit factor at least 1.35, max drawdown no greater than 20%, at least 200 backtest trades, at least 30 forward-paper trades, and zero risk-gate bypasses.
+- Approval artifact age no greater than seven days with matching strategy/risk config hash.
+- Alpaca account/options capability confirmed at runtime.
+- Operator-supplied env-only Alpaca credentials and `OPTIONCLAW_ENABLE_LIVE_TRADING=true`.
+- `--confirm-live` on submit.
+
+This gate is internal software approval only. Broker approval, legal/regulatory suitability, and future ROI remain external risks.
 
 ## Checklist
 

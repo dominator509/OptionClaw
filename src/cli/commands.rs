@@ -30,6 +30,22 @@ pub enum Command {
     Health {
         config: PathBuf,
     },
+    LiveCheck {
+        config: PathBuf,
+    },
+    LiveSubmit {
+        config: PathBuf,
+        order_intent: PathBuf,
+        confirm_live: bool,
+    },
+    ResearchBacktest {
+        config: PathBuf,
+        fixtures: PathBuf,
+    },
+    ResearchApprove {
+        config: PathBuf,
+        report: PathBuf,
+    },
 }
 
 pub fn parse_command() -> Result<Command, CliError> {
@@ -43,6 +59,8 @@ pub fn parse_command() -> Result<Command, CliError> {
         Some(command) if command == "paper" => parse_paper(args),
         Some(command) if command == "risk" => parse_risk(args),
         Some(command) if command == "health" => parse_health(args),
+        Some(command) if command == "live" => parse_live(args),
+        Some(command) if command == "research" => parse_research(args),
         Some(other) => Err(CliError::UnknownCommand {
             command: other.to_string_lossy().to_string(),
         }),
@@ -277,6 +295,178 @@ fn parse_health(mut args: impl Iterator<Item = OsString>) -> Result<Command, Cli
 
     expect_no_more_args("health", args).map(|_| Command::Health {
         config: PathBuf::from(config),
+    })
+}
+
+fn parse_live(mut args: impl Iterator<Item = OsString>) -> Result<Command, CliError> {
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingArgument {
+            command: "live",
+            argument: "<check|submit>",
+            hint: "run `optionclaw live --help`.",
+        });
+    };
+    if is_help_flag(&subcommand) {
+        return Ok(Command::Help);
+    }
+    if subcommand == "check" {
+        return parse_live_check(args);
+    }
+    if subcommand == "submit" {
+        return parse_live_submit(args);
+    }
+    Err(CliError::UnknownSubcommand {
+        command: "live",
+        subcommand: subcommand.to_string_lossy().to_string(),
+    })
+}
+
+fn parse_live_check(mut args: impl Iterator<Item = OsString>) -> Result<Command, CliError> {
+    let Some(first) = args.next() else {
+        return Err(missing_path("live check", "--config <path>"));
+    };
+    if is_help_flag(&first) {
+        return Ok(Command::Help);
+    }
+    if first != "--config" {
+        return Err(unexpected_arg("live check", first));
+    }
+
+    let Some(config) = args.next() else {
+        return Err(missing_path("live check", "--config <path>"));
+    };
+
+    expect_no_more_args("live check", args).map(|_| Command::LiveCheck {
+        config: PathBuf::from(config),
+    })
+}
+
+fn parse_live_submit(mut args: impl Iterator<Item = OsString>) -> Result<Command, CliError> {
+    let Some(first) = args.next() else {
+        return Err(missing_path("live submit", "--config <path>"));
+    };
+    if is_help_flag(&first) {
+        return Ok(Command::Help);
+    }
+    if first != "--config" {
+        return Err(unexpected_arg("live submit", first));
+    }
+
+    let Some(config) = args.next() else {
+        return Err(missing_path("live submit", "--config <path>"));
+    };
+
+    let Some(order_flag) = args.next() else {
+        return Err(missing_path("live submit", "--order-intent <path>"));
+    };
+    if order_flag != "--order-intent" {
+        return Err(unexpected_arg("live submit", order_flag));
+    }
+
+    let Some(order_intent) = args.next() else {
+        return Err(missing_path("live submit", "--order-intent <path>"));
+    };
+
+    let mut confirm_live = false;
+    for arg in args {
+        if arg == "--confirm-live" {
+            confirm_live = true;
+        } else {
+            return Err(unexpected_arg("live submit", arg));
+        }
+    }
+
+    Ok(Command::LiveSubmit {
+        config: PathBuf::from(config),
+        order_intent: PathBuf::from(order_intent),
+        confirm_live,
+    })
+}
+
+fn parse_research(mut args: impl Iterator<Item = OsString>) -> Result<Command, CliError> {
+    let Some(subcommand) = args.next() else {
+        return Err(CliError::MissingArgument {
+            command: "research",
+            argument: "<backtest|approve>",
+            hint: "run `optionclaw research --help`.",
+        });
+    };
+    if is_help_flag(&subcommand) {
+        return Ok(Command::Help);
+    }
+    if subcommand == "backtest" {
+        return parse_research_backtest(args);
+    }
+    if subcommand == "approve" {
+        return parse_research_approve(args);
+    }
+    Err(CliError::UnknownSubcommand {
+        command: "research",
+        subcommand: subcommand.to_string_lossy().to_string(),
+    })
+}
+
+fn parse_research_backtest(mut args: impl Iterator<Item = OsString>) -> Result<Command, CliError> {
+    let Some(first) = args.next() else {
+        return Err(missing_path("research backtest", "--config <path>"));
+    };
+    if is_help_flag(&first) {
+        return Ok(Command::Help);
+    }
+    if first != "--config" {
+        return Err(unexpected_arg("research backtest", first));
+    }
+
+    let Some(config) = args.next() else {
+        return Err(missing_path("research backtest", "--config <path>"));
+    };
+
+    let Some(fixtures_flag) = args.next() else {
+        return Err(missing_path("research backtest", "--fixtures <path>"));
+    };
+    if fixtures_flag != "--fixtures" {
+        return Err(unexpected_arg("research backtest", fixtures_flag));
+    }
+
+    let Some(fixtures) = args.next() else {
+        return Err(missing_path("research backtest", "--fixtures <path>"));
+    };
+
+    expect_no_more_args("research backtest", args).map(|_| Command::ResearchBacktest {
+        config: PathBuf::from(config),
+        fixtures: PathBuf::from(fixtures),
+    })
+}
+
+fn parse_research_approve(mut args: impl Iterator<Item = OsString>) -> Result<Command, CliError> {
+    let Some(first) = args.next() else {
+        return Err(missing_path("research approve", "--config <path>"));
+    };
+    if is_help_flag(&first) {
+        return Ok(Command::Help);
+    }
+    if first != "--config" {
+        return Err(unexpected_arg("research approve", first));
+    }
+
+    let Some(config) = args.next() else {
+        return Err(missing_path("research approve", "--config <path>"));
+    };
+
+    let Some(report_flag) = args.next() else {
+        return Err(missing_path("research approve", "--report <path>"));
+    };
+    if report_flag != "--report" {
+        return Err(unexpected_arg("research approve", report_flag));
+    }
+
+    let Some(report) = args.next() else {
+        return Err(missing_path("research approve", "--report <path>"));
+    };
+
+    expect_no_more_args("research approve", args).map(|_| Command::ResearchApprove {
+        config: PathBuf::from(config),
+        report: PathBuf::from(report),
     })
 }
 

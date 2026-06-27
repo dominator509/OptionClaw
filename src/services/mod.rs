@@ -9,13 +9,17 @@ use crate::errors::{AppError, InputError};
 
 pub mod config_service;
 pub mod health_service;
+pub mod live_service;
 pub mod paper_service;
+pub mod research_service;
 pub mod risk_service;
 pub mod state_service;
 
 pub use config_service::{check_config, ConfigReport};
 pub use health_service::{health, HealthReport};
+pub use live_service::{live_check, live_submit, LiveCheckReport, LiveSubmitReport};
 pub use paper_service::{run_paper_once, PaperExecutionStatus, PaperRunReport};
+pub use research_service::{approve_research, run_backtest, ApprovalReport, BacktestReport};
 pub use risk_service::{explain_risk, RiskExplainFixture, RiskReport};
 pub use state_service::{init_state, verify_state};
 

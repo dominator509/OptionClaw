@@ -45,6 +45,7 @@ fn missing_secret_fails_closed() {
 fn paper_mode_does_not_require_secrets() {
     let config = AppConfig {
         trading_mode: TradingMode::Paper,
+        ..AppConfig::default()
     };
     assert!(config.validate_security().is_ok());
     assert!(authorize_execution(TradingMode::Paper, ExecutionGates::default()).is_ok());

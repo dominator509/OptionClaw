@@ -51,6 +51,7 @@ Initial metrics may be emitted as structured log counters or local text output u
 - Risk accept/reject counts.
 - Paper execution count.
 - Provider error count by provider and operation.
+- Live check and live submit provider result counts.
 - Audit append failures.
 - Health status.
 - Kill switch active state.
@@ -108,6 +109,7 @@ Example local inspection patterns:
 
 - Filter risk decisions by searching for `"command":"risk"` and `"result":"rejected"`.
 - Filter provider failures by searching for `"operation":"snapshot"` or `"operation":"advise"` with `"result":"failure"`.
+- Filter EP-011 live provider checks by searching for `adapter_result{provider=alpaca,operation=live_check,...}` or `adapter_result{provider=alpaca,operation=submit_order,...}`.
 - Filter audit failures by searching for `"operation":"append_audit"` and `"result":"failure"`.
 - Filter kill-switch related health state by searching for `"kill_switch_active":true`.
 
@@ -116,6 +118,7 @@ Example local inspection patterns:
 Alert expectations for production:
 
 - Any live execution error.
+- Any stale approval artifact, config-hash mismatch, or options capability failure before live submit.
 - Audit append failure.
 - Kill switch active while scheduled trading is expected.
 - Provider authentication failure.
@@ -139,6 +142,7 @@ Initial internal SLO targets before live mode:
 
 - 100% of order intents pass through risk gate before execution.
 - 100% of audit-required lifecycle events are persisted or execution fails closed.
+- 100% of live submit attempts have an approval artifact and risk decision before provider submission.
 - 0 known secret leaks in logs/tests/fixtures.
 - Smoke test passes for each deployed artifact.
 

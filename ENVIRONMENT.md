@@ -34,11 +34,30 @@ These variables are planned contracts. Implement variables only when the linked 
 | `OPTIONCLAW_BROKER_PROVIDER` | Optional until broker adapter | sandbox/production | `mock` | No | Broker/exchange execution provider. | Initial allowed values: `mock`, `paper`; real providers require contract tests. |
 | `OPTIONCLAW_BROKER_API_KEY` | Optional until broker adapter | sandbox/production | `opcl_fake_broker_key` | Yes | Broker/exchange API key. | Required only for sandbox/live provider; must not be logged. |
 | `OPTIONCLAW_BROKER_API_SECRET` | Optional until broker adapter | sandbox/production | `opcl_fake_broker_secret` | Yes | Broker/exchange API secret. | Required only for sandbox/live provider; must not be logged. |
+| `OPTIONCLAW_ALPACA_API_KEY` | Required for EP-011 live check/submit | sandbox/production | `opcl_fake_alpaca_key` | Yes | Alpaca API key for account/options/order endpoints. | Required only at runtime; must not be written to config, fixtures, logs, audit records, reports, or approval artifacts. |
+| `OPTIONCLAW_ALPACA_API_SECRET` | Required for EP-011 live check/submit | sandbox/production | `opcl_fake_alpaca_secret` | Yes | Alpaca API secret for account/options/order endpoints. | Required only at runtime; must not be written to config, fixtures, logs, audit records, reports, or approval artifacts. |
 | `OPTIONCLAW_WALLET_PROVIDER` | Optional | sandbox/production | `disabled` | No | Wallet connector selection. | Default `disabled`; real signing requires dedicated security plan. |
 | `OPTIONCLAW_KILL_SWITCH_FILE` | Optional | all | `./var/dev/KILL_SWITCH` | No | Path checked before execution. Presence or configured state disables execution. | Must be readable if set. |
 | `OPTIONCLAW_MAX_ACCOUNT_RISK_PCT` | Required before live | sandbox/production | `1.0` | No | Max account equity at risk per order intent. | Decimal greater than 0 and less than or equal to configured cap. |
 | `OPTIONCLAW_MAX_DAILY_LOSS_PCT` | Required before live | sandbox/production | `3.0` | No | Daily loss kill threshold. | Decimal greater than 0; live mode requires value. |
 | `OPTIONCLAW_ENABLE_LIVE_TRADING` | Required before live | production | `false` | No | Explicit live-trading enable flag. | Must be exactly `true` plus all live gates; current CLI baseline still fails closed when live mode is selected without the remaining approvals. |
+
+## EP-011 Live Config Keys
+
+`config/live.example.toml` documents the non-secret live-readiness config shape:
+
+- `provider = "alpaca"`
+- `provider_environment = "paper" | "sandbox" | "live"`
+- `strategy_id`
+- `risk_profile_id`
+- `max_account_risk_bps`
+- `max_daily_loss_bps`
+- `max_contracts_per_order`
+- `kill_switch_file`
+- `approval_artifact`
+- `alpaca_base_url` for mocks/sandbox fixtures only
+
+The live CLI still fails closed unless env-only Alpaca credentials, `OPTIONCLAW_ENABLE_LIVE_TRADING=true`, a fresh approval artifact, inactive kill switch, account/options capability, and `--confirm-live` are present.
 
 ## Secrets
 
@@ -81,11 +100,13 @@ Staging is a local or VPS deployment using paper or sandbox mode only. It requir
 Production live trading requires:
 
 - EP-010 production readiness passed.
+- EP-011 internal live software approval passed.
 - Explicit operator approval outside the repository.
 - Validated provider integration.
 - Configured risk limits.
 - Kill switch tested.
-- Encrypted secrets.
+- Env-only Alpaca secrets for v1 live execution.
+- Fresh ROI approval artifact with matching strategy/risk config hash.
 - Backup and rollback process.
 
 ## Configuration Validation

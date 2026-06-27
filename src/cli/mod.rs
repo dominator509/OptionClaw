@@ -3,7 +3,10 @@ use std::process::ExitCode;
 use crate::{
     errors::AppError,
     observability::{error_code_from_display, init_logging, record_metric, LogLevel, MetricEvent},
-    services::{check_config, explain_risk, health, init_state, run_paper_once, verify_state},
+    services::{
+        approve_research, check_config, explain_risk, health, init_state, live_check, live_submit,
+        run_backtest, run_paper_once, verify_state,
+    },
 };
 
 mod commands;
@@ -74,6 +77,46 @@ pub fn run() -> ExitCode {
             }
             Err(err) => report_cli_failure("health", err),
         },
+        Ok(commands::Command::LiveCheck { config }) => match live_check(&config) {
+            Ok(report) => {
+                output::print_live_check(&report);
+                record_metric(MetricEvent::command_success("live check"));
+                ExitCode::SUCCESS
+            }
+            Err(err) => report_cli_failure("live check", err),
+        },
+        Ok(commands::Command::LiveSubmit {
+            config,
+            order_intent,
+            confirm_live,
+        }) => match live_submit(&config, &order_intent, confirm_live) {
+            Ok(report) => {
+                output::print_live_submit(&report);
+                record_metric(MetricEvent::command_success("live submit"));
+                ExitCode::SUCCESS
+            }
+            Err(err) => report_cli_failure("live submit", err),
+        },
+        Ok(commands::Command::ResearchBacktest { config, fixtures }) => {
+            match run_backtest(&config, &fixtures) {
+                Ok(report) => {
+                    output::print_backtest_report(&report);
+                    record_metric(MetricEvent::command_success("research backtest"));
+                    ExitCode::SUCCESS
+                }
+                Err(err) => report_cli_failure("research backtest", err),
+            }
+        }
+        Ok(commands::Command::ResearchApprove { config, report }) => {
+            match approve_research(&config, &report) {
+                Ok(report) => {
+                    output::print_approval_report(&report);
+                    record_metric(MetricEvent::command_success("research approve"));
+                    ExitCode::SUCCESS
+                }
+                Err(err) => report_cli_failure("research approve", err),
+            }
+        }
         Err(err) => {
             output::print_error(&err);
             output::print_help();

@@ -172,7 +172,7 @@ impl RiskLimitsFixture {
 }
 
 impl OrderIntentFixture {
-    fn to_domain(&self) -> Result<OrderIntent, AppError> {
+    pub(crate) fn to_domain(&self) -> Result<OrderIntent, AppError> {
         Ok(OrderIntent::new(OrderIntentSpec {
             id: self.id.clone(),
             mode: self.mode,

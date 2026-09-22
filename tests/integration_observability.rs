@@ -1,4 +1,8 @@
-use std::path::PathBuf;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use optionclaw::{
     observability::{
@@ -6,13 +10,28 @@ use optionclaw::{
         reset_metrics_for_test, snapshot_metrics, LogLevel, MetricEvent, StructuredField,
         StructuredLogEvent,
     },
-    services::health,
+    services::{health, init_state},
 };
 
-fn example_config_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("config")
-        .join("example.toml")
+fn unique_temp_dir(name: &str) -> PathBuf {
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock should be on or after epoch")
+        .as_nanos();
+    let path = std::env::temp_dir().join(format!("optionclaw-observability-{name}-{nanos}"));
+    if path.exists() {
+        let _ = fs::remove_dir_all(&path);
+    }
+    fs::create_dir_all(&path).expect("temp dir should be creatable");
+    path
+}
+
+fn write_paper_config(root: &Path) -> PathBuf {
+    let config_dir = root.join("config");
+    fs::create_dir_all(&config_dir).expect("config dir should be creatable");
+    let config_path = config_dir.join("example.toml");
+    fs::write(&config_path, "trading_mode = \"paper\"\n").expect("config should write");
+    config_path
 }
 
 fn invalid_config_path() -> PathBuf {
@@ -79,7 +98,15 @@ fn health_success_emits_structured_signal() {
     drain_structured_logs_for_test();
     reset_metrics_for_test();
 
-    let report = health(example_config_path()).expect("health should succeed");
+    // health() derives the data dir (<root>/var/dev) from the config path, so
+    // build an isolated root and initialize state there: a fresh checkout
+    // (including CI) has no <repo>/var/dev, which previously made this test
+    // depend on local machine state.
+    let root = unique_temp_dir("health");
+    let config_path = write_paper_config(&root);
+    init_state(root.join("var").join("dev")).expect("state should initialize");
+
+    let report = health(&config_path).expect("health should succeed");
     assert!(report.config_ready);
 
     let snapshot = snapshot_metrics();
@@ -92,4 +119,6 @@ fn health_success_emits_structured_signal() {
         .iter()
         .any(|line| line.contains("\"command\":\"health\"")
             && line.contains("\"result\":\"success\"")));
+
+    let _ = fs::remove_dir_all(&root);
 }

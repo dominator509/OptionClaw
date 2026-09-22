@@ -77,6 +77,14 @@ fn plaintext_secret_file_is_rejected() {
     let root = unique_temp_dir("plaintext");
     let secret_path = root.join("secret.txt");
     fs::write(&secret_path, "api_key = \"super-secret\"").expect("secret file should write");
+    // reject_plaintext_secret_file checks permissions before content, so give
+    // the file restrictive permissions to exercise the plaintext rejection.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&secret_path, fs::Permissions::from_mode(0o600))
+            .expect("permissions should be settable");
+    }
 
     let err = reject_plaintext_secret_file(&secret_path)
         .expect_err("plaintext secret file should be rejected");
